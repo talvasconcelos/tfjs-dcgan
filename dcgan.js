@@ -83,7 +83,8 @@ class DCGAN {
             inputShape, 
             padding: 'same'
         }))
-        this.D.add(tf.layers.leakyReLU({alpha: 0.2}))
+        this.D.add(tf.layers.elu())
+        // this.D.add(tf.layers.leakyReLU({alpha: 0.2}))
 
         let [mult, newImgSize] = [1, this.imgSize / 2]
 
@@ -95,7 +96,8 @@ class DCGAN {
                 padding: 'same'
             }))
             this.D.add(tf.layers.batchNormalization())
-            this.D.add(tf.layers.leakyReLU({alpha: 0.2}))
+            this.D.add(tf.layers.elu())
+            // this.D.add(tf.layers.leakyReLU({alpha: 0.2}))
 
             mult *= 2
             newImgSize /= 2
@@ -106,7 +108,8 @@ class DCGAN {
             kernelSize: 4, 
             strides: 1
         }))
-        this.D.add(tf.layers.leakyReLU({alpha: 0.2}))
+        this.D.add(tf.layers.elu())
+        // this.D.add(tf.layers.leakyReLU({alpha: 0.2}))
 
         this.D.add(tf.layers.flatten())
         this.D.add(tf.layers.dense({units: 1}))
@@ -121,7 +124,7 @@ class DCGAN {
     dicriminatorModel = () => {
         if(this.DM) {return this.DM}
         // const optimizer = tf.train.rmsprop({learningRate: 0.0008, decay: 6e-8})
-        const optimizer = tf.train.adam({learningRate: 0.0008, beta1: this.beta1})
+        const optimizer = tf.train.adam()
         this.DM = tf.sequential()
         this.DM.add(this.discriminator())
         this.DM.compile({
@@ -136,7 +139,7 @@ class DCGAN {
     adversarialModel = () => {
         if(this.AM) {return this.AM}
         // const optimizer = tf.train.rmsprop({learningRate: 0.0004, decay: 3e-8})
-        const optimizer = tf.train.adam({learningRate: 0.0004, beta1: this.beta1})
+        const optimizer = tf.train.adam()
         this.AM = tf.sequential()
         this.AM.add(this.generator())
         this.AM.add(this.discriminator())
