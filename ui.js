@@ -47,6 +47,7 @@ export const getImages = (data) => {
         const image = data.slice([i, 0], [1, data.shape[1]])
         imgs.push(image.flatten())
     }
+    console.log('get imgs')
     return imgs
 }
 

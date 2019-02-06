@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 
-tf.setBackend('cpu')
+// tf.setBackend('cpu')
 
 class DCGAN {
     constructor(opts) {
@@ -11,7 +11,8 @@ class DCGAN {
         this.dim = 100 //input dimensions
         this.ngf = 32 // # generator filters 1st conv
         this.ndf = 32 // # dicriminator filters 1st conv
-        this.lr = 0.0002 // learning rate (adam)
+        this.glr = 0.02 // learning rate (adam)
+        this.dlr = 0.01 // learning rate (adam)
         this.beta1 = 0.5 // momentum (adam)
         this.D = null //Discriminator
         this.G = null //Generator
@@ -20,7 +21,7 @@ class DCGAN {
     }
 
     noise = (n = 1) => {
-        return tf.randomUniform([n, this.dim], -1, 1)
+        return tf.randomUniform([n, this.dim], 0, 1)
     }
 
     getDim = () => {
