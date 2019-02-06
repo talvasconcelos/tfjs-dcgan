@@ -3,59 +3,70 @@ import { Component } from 'preact'
 import * as tf from '@tensorflow/tfjs'
 
 import {/*IMAGE_H, IMAGE_W,*/ MnistData} from './mnist'
+import {drawCanvas, getImages, showTestResults} from './ui.js'
 import mnistDCGAN from './mnistgan'
 
 import Samples from './components/samples'
+import Canvas from './components/canvas'
 
 export default class App extends Component {
 
 	state = {
 		data: null,
-		dcgan: null
+		dcgan: null,
+		toggle: true,
+		samples: null
 	}
 
-	train = async (epochs = 100) => {
+	train = async (epochs = 250) => {
 		const g = this.state.dcgan
-		await this.setState({
-			samples: g.gen.predict(this.state.noise)
-		})
-		await tf.nextFrame()
 		for (let i = 0; i < epochs; i++) {
-			let noise =	g.gan.noise(32)
+			await tf.nextFrame()
+			if(!this.state.training ) {break}
+			
+			let noise =	g.gan.noise(16)
 			let fakes = g.gen.predict(noise)
-			let real = this.state.data.nextTrainBatch(32).xs.reshapeAs(fakes)
+			let real = this.state.data.nextTrainBatch(16).xs.reshapeAs(fakes)
 			let x = tf.concat([real, fakes])
 			let y = tf.concat([g.ONES_CAP, g.ZEROS])
 			
-			let dLoss = await g.discriminator.trainOnBatch(x, y)
-			await tf.nextFrame()
+			let dLoss = await g.discriminator.trainOnBatch(x, y)			
 			console.log('discriminator done')
-			y = g.ONES
-			noise = g.gan.noise(32)
+			await tf.nextFrame()
 
-			// console.log(y.shape)
-			// console.log(noise.shape)
+			y = g.ONES
+			noise = g.gan.noise(16)
 
 			let aLoss = await g.adversarial.trainOnBatch(noise, y)
 			console.log('adversarial done')
-			// console.log(aLoss)
+						
+			//if(i % 5 === 0 && i != 0){
+				this.setState((state, props) => {
+					const p = g.gen.predict(this.state.noise)
+					console.log('samples update')
+					return {samples: p}
+				})				
+			//}
 			await tf.nextFrame()
-			if(i % 10 === 0){
-				await this.setState({
-					samples: g.gen.predict(this.state.noise)
-				})
-			}
-			
-			console.log('samples update')
-			
 			console.log(dLoss, aLoss)
+			
 		}
+		console.log('End!')
 	}
 
 	startTrain = () => {
 		console.log('Start...')
-		
-		this.train()
+		this.setState((state, props) => {
+			return {training: true}
+		})
+		this.train()		
+	}
+
+	stopTrain = () => {
+		console.log('Stopping...')		
+		this.setState({
+			training: false
+		})
 	}
 
 	componentDidMount = () => {
@@ -67,16 +78,32 @@ export default class App extends Component {
 				dcgan: new mnistDCGAN({
 					imgSize: 28,
 					imgC: 1,
-					batchSize: 32,
+					batchSize: 16,
 					data
 				})
 			})
-			}).then(() => {
-				const noise = this.state.dcgan.gan.noise(9)
-				this.setState({
-					noise
-				})
+		}).then(() => {
+			const noise = this.state.dcgan.gan.noise(9)
+			this.setState({
+				noise
 			})
+		}).then(() => {
+			this.setState({
+				samples: this.state.dcgan.gen.predict(this.state.noise)
+			})
+		})
+	}
+
+	toggle = () => {
+		this.setState({toggle: !this.state.toggle})
+	}
+
+	renewSamples = () => {
+		this.setState((state, props) => {
+			const noise = this.state.dcgan.gan.noise(9)
+			const p = this.state.dcgan.gen.predict(noise)
+			return {samples: p}
+		})
 	}
 
 	render({}, {samples}) {
@@ -84,7 +111,17 @@ export default class App extends Component {
 			<div>
 				<h1>Hello, World!</h1>
 				<button onClick={this.startTrain}>Train</button>
-				{samples && <Samples examples={samples} />}
+				<button onClick={this.stopTrain}>Stop</button>
+				<button onClick={this.renewSamples}>Samples</button>
+				<button onClick={this.toggle}>toggle</button>
+				{/* {samples && <Samples examples={samples} />} */}
+				<div>
+					<h3>Samples</h3>
+					<div id="testSamples">
+						{samples && getImages(samples).map(img => <Canvas data={img}/>)}            
+						{/* {showTestResults(examples)} */}
+					</div>
+				</div>
 			</div>
 		)
 	}

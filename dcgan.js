@@ -9,8 +9,8 @@ class DCGAN {
         this.imgC = opts.imgC
 
         this.dim = 100 //input dimensions
-        this.ngf = 32 // # generator filters 1st conv
-        this.ndf = 32 // # dicriminator filters 1st conv
+        this.ngf = 128 // # generator filters 1st conv
+        this.ndf = 64 // # dicriminator filters 1st conv
         this.glr = 0.02 // learning rate (adam)
         this.dlr = 0.01 // learning rate (adam)
         this.beta1 = 0.5 // momentum (adam)
@@ -21,7 +21,7 @@ class DCGAN {
     }
 
     noise = (n = 1) => {
-        return tf.randomUniform([n, this.dim], 0, 1)
+        return tf.randomUniform([n, this.dim], -1, 1)
     }
 
     getDim = () => {
@@ -64,7 +64,7 @@ class DCGAN {
         this.G.add(tf.layers.conv2dTranspose({filters: this.imgC, kernelSize: 4, padding: 'same'}))
         this.G.add(tf.layers.activation({activation: 'tanh'}))
 
-        this.G.summary()
+        // this.G.summary()
 
         return this.G
     }
@@ -116,7 +116,7 @@ class DCGAN {
         this.D.add(tf.layers.dense({units: 1}))
         this.D.add(tf.layers.activation({activation: 'sigmoid'}))
 
-        this.D.summary()
+        // this.D.summary()
 
         return this.D
         
@@ -124,8 +124,8 @@ class DCGAN {
 
     dicriminatorModel = () => {
         if(this.DM) {return this.DM}
-        // const optimizer = tf.train.rmsprop({learningRate: 0.0008, decay: 6e-8})
-        const optimizer = tf.train.adam()
+        const optimizer = tf.train.adam({learningRate: 0.0002, beta1: this.beta1})
+        // const optimizer = tf.train.adam()
         this.DM = tf.sequential()
         this.DM.add(this.discriminator())
         this.DM.compile({
@@ -139,8 +139,9 @@ class DCGAN {
 
     adversarialModel = () => {
         if(this.AM) {return this.AM}
-        // const optimizer = tf.train.rmsprop({learningRate: 0.0004, decay: 3e-8})
-        const optimizer = tf.train.adam()
+        const optimizer = tf.train.adam({learningRate: 0.0005, beta1: this.beta1})
+        // const optimizer = tf.train.adam()
+        this.discriminator().trainable = false
         this.AM = tf.sequential()
         this.AM.add(this.generator())
         this.AM.add(this.discriminator())
@@ -149,6 +150,8 @@ class DCGAN {
             loss: 'binaryCrossentropy',
             metrics: ['accuracy']
         })
+
+        // this.AM.summary()
 
         return this.AM
     }
