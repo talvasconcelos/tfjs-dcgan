@@ -9,24 +9,26 @@ import mnistDCGAN from './mnistgan'
 import Samples from './components/samples'
 import Canvas from './components/canvas'
 
+
 export default class App extends Component {
 
 	state = {
 		data: null,
 		dcgan: null,
 		toggle: true,
-		samples: null
+		samples: null,
+		epoch: 0
 	}
 
-	train = async (epochs = 250) => {
+	train = async (epochs = 2000) => {
 		const g = this.state.dcgan
 		for (let i = 0; i < epochs; i++) {
 			await tf.nextFrame()
 			if(!this.state.training ) {break}
 			
-			let noise =	g.gan.noise(16)
+			let noise =	g.gan.noise(32)
 			let fakes = g.gen.predict(noise)
-			let real = this.state.data.nextTrainBatch(16).xs.reshapeAs(fakes)
+			let real = this.state.data.nextTrainBatch(32).xs.reshapeAs(fakes)
 			let x = tf.concat([real, fakes])
 			let y = tf.concat([g.ONES_CAP, g.ZEROS])
 			
@@ -35,18 +37,19 @@ export default class App extends Component {
 			await tf.nextFrame()
 
 			y = g.ONES
-			noise = g.gan.noise(16)
+			noise = g.gan.noise(32)
 
 			let aLoss = await g.adversarial.trainOnBatch(noise, y)
 			console.log('adversarial done')
 						
-			//if(i % 5 === 0 && i != 0){
+			if(i % 5 === 0 && i != 0){
 				this.setState((state, props) => {
 					const p = g.gen.predict(this.state.noise)
 					console.log('samples update')
 					return {samples: p}
 				})				
-			//}
+			}
+			this.setState((state, props) => ({epoch: this.state.epoch + 1}))
 			await tf.nextFrame()
 			console.log(dLoss, aLoss)
 			
@@ -78,7 +81,7 @@ export default class App extends Component {
 				dcgan: new mnistDCGAN({
 					imgSize: 28,
 					imgC: 1,
-					batchSize: 16,
+					batchSize: 32,
 					data
 				})
 			})
@@ -106,7 +109,7 @@ export default class App extends Component {
 		})
 	}
 
-	render({}, {samples}) {
+	render({}, {epoch, samples}) {
 		return (
 			<div>
 				<h1>Hello, World!</h1>
@@ -117,6 +120,7 @@ export default class App extends Component {
 				{/* {samples && <Samples examples={samples} />} */}
 				<div>
 					<h3>Samples</h3>
+					<h4>{epoch}</h4>
 					<div id="testSamples">
 						{samples && getImages(samples).map(img => <Canvas data={img}/>)}            
 						{/* {showTestResults(examples)} */}

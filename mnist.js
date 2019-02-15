@@ -221,6 +221,7 @@ export class MnistData {
             // All channels hold an equal value since the image is grayscale, so
             // just read the red channel.
             datasetBytesView[j] = imageData.data[j * 4] / 255;
+            // datasetBytesView[j] = imageData.data[j * 4] / 127.5 - 1;
           }
 
           // console.log('Processed chunk ' + i);

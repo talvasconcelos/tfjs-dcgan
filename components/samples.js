@@ -7,7 +7,7 @@ const Samples = ({examples}) => {
         <div>
             <h3>Samples</h3>
             <div id="testSamples">
-                {examples && getImages(examples).map(img => <Canvas data={img}/>)}            
+                {examples && getImages(examples).map((img, i) => <Canvas key={i} data={img}/>)}
                 {/* {showTestResults(examples)} */}
             </div>
         </div>

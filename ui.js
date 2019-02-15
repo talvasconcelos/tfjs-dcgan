@@ -11,6 +11,16 @@ export const drawCanvas = (data) => {
     }
 }
 
+// export const _draw = (image, canvas) => {
+//     return tf.tidy(() => {
+//         const [width, height] = [28, 28]
+    
+//         const ctx = canvas.getContext('2d')
+//         const imageData = new ImageData(width, height)
+//         tf.browser.toPixels(image, canvas)
+//     })
+// }
+
 export const draw = (image, canvas) => {
     return tf.tidy(() => {
         const [width, height] = [28, 28]
@@ -26,7 +36,7 @@ export const draw = (image, canvas) => {
             imageData.data[j + 3] = 255
         }
         // console.log(imageData)
-        ctx.putImageData(imageData, 0, 0)
+        return ctx.putImageData(imageData, 0, 0)
     })
 }
 

@@ -8,7 +8,6 @@ class Canvas extends Component {
         const canvas = this.canvas
         canvas.width = 28
         canvas.height = 28
-        const ctx = canvas.getContext("2d")
         draw(image, canvas)
     }
 
